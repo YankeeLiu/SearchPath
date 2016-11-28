@@ -99,18 +99,18 @@ def train(model):
 
 
 
-                if action_t == 0:
+                if test_action == 0:
                     test_y -= 1
-                elif action_t == 1:
+                elif test_action == 1:
                     test_y += 1
-                elif action_t == 2:
+                elif test_action == 2:
                     test_x -= 1
                 else:
                     test_x += 1
 
-                terminated, reward_t = mazeGame.getReward(test_x, test_y)  # 当前这步真实的reward
+                    test_terminated, test_Reward = mazeGame.getReward(test_x, test_y)  # 当前这步真实的reward
 
-                if terminated:
+                if test_terminated:
                     break
 
         if counter % 5000 == 0:
