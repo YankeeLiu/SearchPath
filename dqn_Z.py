@@ -16,11 +16,11 @@ gamma = 0.99
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init="uniform", border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init="normal", border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
     model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init="uniform", border_mode='same'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init="normal", border_mode='same'))
     model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init="uniform", border_mode='same'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init="normal", border_mode='same'))
     model.add(Activation('relu'))
     model.add(Flatten())
     model.add(Dense(512, init="uniform"))
@@ -43,13 +43,13 @@ def train(model):
         targets = np.zeros((inputs.shape[0], actionNum))  # 32, 4
 
         nowX, nowY, endX, endY = mazeGame.selectStartAndEndPoint(maxDistance)
-        mazeGame.calRewadMatrix(endX,endY)
+        reward = mazeGame.calRewardMatrix(endX,endY)
 
         for i in range(batchSz):
             inputs[i] = mazeGame.getCurrentImage(nowX, nowY, endX, endY)    # 获取当前图像
             targets[i] = model.predict(inputs[i].reshape([1, 1, imgRow, imgCol]))    # 网络走一步
             action_t = np.argmax(targets[i])    # reward预测值最大的那一步
-            # print targets[i]
+            #print targets[i]
             # 按照网络预测走一步state.
             back_x = nowX
             back_y = nowY
@@ -63,7 +63,7 @@ def train(model):
             else:
                 nowX += 1
 
-            terminated, reward_t = mazeGame.getReward(nowX, nowY)        #当前这步真实的reward
+            terminated, reward_t = mazeGame.getReward(reward, nowX, nowY)        #当前这步真实的reward
 
             if terminated:
                 # 如果撞墙了或者走到终点了
@@ -89,9 +89,9 @@ def train(model):
         if counter % 100 == 0:
             test_x, test_y, test_end_x, test_end_y = mazeGame.selectStartAndEndPoint(maxDistance)
             test_terminated = False
-            test_Reward = mazeGame.calRewadMatrix(endX, endY)
+            test_Reward = mazeGame.calRewardMatrix(test_end_x, test_end_y)
             count = 0
-            while(test_terminated==False or count <= 30):
+            while(True):
 
                 test_state = mazeGame.getCurrentImage(test_x, test_y, test_end_x, test_end_y)
                 mazeGame.visualization(test_state)
@@ -108,12 +108,15 @@ def train(model):
                 else:
                     test_x += 1
 
-                    test_terminated, test_Reward = mazeGame.getReward(test_x, test_y)  # 当前这步真实的reward
+                test_terminated, test_Reward_t = mazeGame.getReward(test_Reward, test_x, test_y)  # 当前这步真实的reward
+                print test_terminated, test_Reward_t
 
-                if test_terminated:
+                if test_terminated or count > 30:
                     break
 
-        if counter % 5000 == 0:
+                count += 1
+
+        if counter % 5001 == 0:
             # 每1000次换一个地图
             maxDistance = initDistance
             mazeGame.createNewMaze()

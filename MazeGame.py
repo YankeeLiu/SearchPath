@@ -13,13 +13,12 @@ num_to_wall = -1
 num_to_road = 0.1
 num_to_finish = 1
 
-num_board_postive = 3
-num_board_negetive = -2
+num_board_postive = 6
+num_board_negetive = -5
 
 class mazeState():
 
     maze = np.zeros([MAP_SIZE, MAP_SIZE])
-    reward = np.zeros([MAP_SIZE, MAP_SIZE])
 
     def __init__(self):
         pass
@@ -77,8 +76,9 @@ class mazeState():
 
         return currtent_image
 
-    #计算reword矩阵,输入为终点坐标
-    def calRewadMatrix(self, x, y):
+    #计算reward矩阵,输入为终点坐标
+    def calRewardMatrix(self, x, y):
+        reward = np.zeros([MAP_SIZE, MAP_SIZE])
         max_distance = 0
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
@@ -89,20 +89,20 @@ class mazeState():
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
                 if (self.maze[i][j] == -1):
-                    self.reward[i][j] = -100
+                    reward[i][j] = -100.0
                 elif self.maze[i][j] == 1:
-                    self.reward[i][j] = (-1 + (np.sqrt((i - x) ** 2 + (j - y) ** 2) / max_distance)) / 100
-                self.reward[i][j] = (self.reward[i][j] / 100.0)
-        self.reward[x][y] = 100 / 100.0
+                    reward[i][j] = -(np.sqrt((i - x) ** 2 + (j - y) ** 2) / max_distance)
+                #reward[i][j] = (reward[i][j] / 100.0)
+        reward[x][y] = 100.0
 
-        return self.reward
+        return reward
 
     #返回一个一个操作对应的reward值和是否结束
-    def getReward(self, x, y):
+    def getReward(self, reward,  x, y):
         terminated = False
-        if self.reward[x][y] == -1 or self.reward[x][y] == 1:
+        if reward[x][y] == -100.0 or reward[x][y] == 100.0:
             terminated = True
-        return terminated, self.reward[x][y]
+        return terminated, reward[x][y]
 
     def visualization(self, m):
         bufferMapR = Objdll.createIntBuffer(MAP_SIZE * MAP_SIZE)
@@ -118,13 +118,23 @@ class mazeState():
         time.sleep(0.1)  # 0.1s
 
         Objdll.destroyIntBuffer(bufferMapR)
-#
-# state = mazeState()
-#
-# state.createNewMaze()
-# s_x, s_y, e_x, e_y = state.selectStartAndEndPoint(maxDistance=10)
-# image = state.getCurrentImage(s_x, s_y, e_x, e_y)
-# state.calRewadMatrix(x=e_x,y=e_y)
-# state.visualization(image)
-# time.sleep(0.5)
-# state.visualization(state.reward.reshape((1,100,100)))
+
+
+def __main__():
+    state = mazeState()
+    state.createNewMaze()
+    s_x, s_y, e_x, e_y = state.selectStartAndEndPoint(maxDistance=10)
+    image = state.getCurrentImage(s_x, s_y, e_x, e_y)
+    reward = state.calRewardMatrix(x=e_x, y=e_y)
+    state.visualization(image)
+    time.sleep(1)
+    state.visualization(reward.reshape((1, 100, 100)))
+    time.sleep(100)
+
+
+if __name__ == "__main__":
+    __main__()
+
+
+
+
