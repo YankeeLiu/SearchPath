@@ -4,7 +4,6 @@ from ctypes import *
 import numpy as np
 import time
 
-BATCH_SIZE = 32
 MAP_SIZE = 100
 Objdll = CDLL("./libtool.so")
 
@@ -27,14 +26,13 @@ class mazeState():
     # 创建一个新的迷宫 random_map为二维矩阵
     def createNewMaze(self):
         bufferMap = Objdll.createIntBuffer(MAP_SIZE * MAP_SIZE)
-        Objdll.getRandomMaze(bufferMap, 10, 10);
+        Objdll.getRandomMaze(bufferMap, 5, 20);
 
-        for i in range(MAP_SIZE):
-            for k in range(MAP_SIZE):
-                self.maze[i][k] = Objdll.getValue(bufferMap, (k + i * MAP_SIZE))
+        for x in range(MAP_SIZE):
+            for y in range(MAP_SIZE):
+                self.maze[x][y] = Objdll.getValue(bufferMap, (x + y * MAP_SIZE))
 
         Objdll.destroyIntBuffer(bufferMap)
-        return self.maze
 
     # 随机初始化开始坐标和结束坐标，返回坐标数据
     def selectStartAndEndPoint(self, maxDistance):
@@ -48,8 +46,7 @@ class mazeState():
             end_point_x = end_point / MAP_SIZE
             end_point_y = end_point % MAP_SIZE
 
-
-        start_point_x= 0
+        start_point_x = 0
         start_point_y = 0
         while(start_point_x >= MAP_SIZE - num_board_postive or start_point_y >= MAP_SIZE - num_board_postive or start_point_x <= num_board_postive or start_point_y <= num_board_postive
          or self.maze[start_point_x][start_point_y] == -1):
@@ -62,23 +59,23 @@ class mazeState():
     #x y分别代表““人”所在位置的横竖坐标，在地图上做标记后返回
     def getCurrentImage(self, s_x, s_y, e_x, e_y):
 
-        currtent_image = np.zeros([MAP_SIZE, MAP_SIZE])
+        current_image = np.zeros([MAP_SIZE, MAP_SIZE])
 
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
-                currtent_image[i][j] = num_to_wall if self.maze[i][j] == -1 else num_to_road
+                current_image[i][j] = num_to_wall if self.maze[i][j] == -1 else num_to_road
 
         for i in range(num_board_negetive, num_board_postive):
             for j in range(num_board_negetive, num_board_postive):
-                currtent_image[s_x + i][s_y + j] = num_to_people
-                currtent_image[e_x + i][e_y + j] = num_to_finish
+                current_image[s_x + i][s_y + j] = num_to_people
+                current_image[e_x + i][e_y + j] = num_to_finish
 
-        currtent_image = currtent_image.reshape([1, MAP_SIZE, MAP_SIZE])
+        #current_image = current_image.reshape([1, MAP_SIZE, MAP_SIZE])
 
-        return currtent_image
+        return current_image
 
-    #计算reword矩阵,输入为终点坐标
-    def calRewadMatrix(self, x, y):
+    #计算reward矩阵,输入为终点坐标
+    def calRewardMatrix(self, x, y):
         max_distance = 0
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
@@ -89,13 +86,10 @@ class mazeState():
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
                 if (self.maze[i][j] == -1):
-                    self.reward[i][j] = -100
+                    self.reward[i][j] = -1
                 elif self.maze[i][j] == 1:
-                    self.reward[i][j] = (-1 + (np.sqrt((i - x) ** 2 + (j - y) ** 2) / max_distance)) / 100
-                self.reward[i][j] = (self.reward[i][j] / 100.0)
-        self.reward[x][y] = 100 / 100.0
-
-        return self.reward
+                    self.reward[i][j] = 1 - np.sqrt((i - x) ** 2 + (j - y) ** 2) / max_distance
+        self.reward[x][y] = 10.0
 
     #返回一个一个操作对应的reward值和是否结束
     def getReward(self, x, y):
@@ -109,7 +103,7 @@ class mazeState():
 
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
-                Objdll.setValue(bufferMapR, j + i * MAP_SIZE, Objdll.rgb(0, int(np.abs(m[0][i][j] * 255)), 0))
+                Objdll.setValue(bufferMapR, j + i * MAP_SIZE, Objdll.rgb(0, int(np.abs(m[i][j] * 255)), 0))
 
         Objdll.initRenderer(800, 800, 32, 8)
         Objdll.render(bufferMapR, 100, 100)
@@ -118,13 +112,20 @@ class mazeState():
         time.sleep(0.1)  # 0.1s
 
         Objdll.destroyIntBuffer(bufferMapR)
-#
-# state = mazeState()
-#
-# state.createNewMaze()
-# s_x, s_y, e_x, e_y = state.selectStartAndEndPoint(maxDistance=10)
-# image = state.getCurrentImage(s_x, s_y, e_x, e_y)
-# state.calRewadMatrix(x=e_x,y=e_y)
-# state.visualization(image)
-# time.sleep(0.5)
-# state.visualization(state.reward.reshape((1,100,100)))
+
+
+def __main__():
+
+    state = mazeState()
+    state.createNewMaze()
+    s_x, s_y, e_x, e_y = state.selectStartAndEndPoint(maxDistance=10)
+    image = state.getCurrentImage(s_x, s_y, e_x, e_y)
+    state.calRewardMatrix(x=e_x, y=e_y)
+    state.visualization(image)
+    time.sleep(2)
+    state.visualization(state.reward)
+    time.sleep(2)
+
+if __name__ == "__main__":
+    __main__()
+
