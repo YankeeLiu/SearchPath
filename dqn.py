@@ -11,7 +11,6 @@ from collections import deque
 from random import sample
 import os
 
-
 imgRow, imgCol = 100, 100
 imgChannel = 4
 actionNum = 4
@@ -21,7 +20,13 @@ gamma = 0.99
 observe = 3200
 replayMemory = 20000
 Epsilo = 0.3
-resetLimitaion = 200000
+resetLimitaion = 300000
+blkSz = 2
+distance = 2
+difficulty = 5
+scale = 20
+renderScale = 5
+renderSize = imgRow * renderScale
 
 
 def getModel():
@@ -87,12 +92,12 @@ class imgQueue:
 
 def train(model):
 
-    if os.path.exists("./model.data")
+    if os.path.exists("./model.data"):
         model.load_weights("model.data")
 
     # Create a new maze
     mz = mg.Maze()
-    mz.createNewMaze()
+    mz.createNewMaze(difficulty, scale, distance, blkSz)
 
     # pick random start & end postion
     init_image = mz.getMazeState()
@@ -107,6 +112,7 @@ def train(model):
 
     inputs = np.zeros((batchSz, imgChannel, imgRow, imgCol))
     targets = np.zeros((batchSz, actionNum))
+    mz.initialRender(renderSize, renderSize, renderScale)
 
     while(True):
         # initalized some flags
@@ -117,37 +123,47 @@ def train(model):
         for i in range(imgChannel):
             queueImg.append(init_image)
 
+        #change the difficulty  &  random rate
+        mz.setDistance((distance+1))
+        randomEpsilon -= 0.01
+
         while(counter < resetLimitaion):
 
             # making decision
             if np.random.random() < randomEpsilon:
+                # choose action randomly
                 action_t = np.random.randint(0, actionNum)
+                
             else:
+                # choose the max prediction reward
                 grayImages_t = queueImg.getChannels()
                 predict_action = model.predict(grayImages_t)
-                action_t = np.argmax(predict_action)  # reward预测值最大的那一步
+                action_t = np.argmax(predict_action)  
 
             # change the postion depends on action index
             terminated, reward_t = mz.moveToNextState(action_t)
             # get the next state
             image = mz.getMazeState()
-            mz.visualization(image)
+            # rende current state
+            mz.visualization(imgRow, imgCol)
             # add the newest state
             queueImg.append(image)
 
             if terminated:
                 # if knock into the wall
-                reward_t = -100.0
+                queueImg.addInfo((action_t, reward_t))
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
                 reward_t = -1.0 + gamma * np.max(model.predict(grayImages_t))
+                queueImg.addInfo((action_t, reward_t))
 
-            queueImg.addInfo((action_t, reward_t))
+            # refresh counter
+            counter += 1
 
             if counter < observe:
                 continue
-            #============TRAIN============
+            #============TRAIN============#
 
             for i in range(batchSz):
                 choise = np.random.randint(0, len(queueImg) - 1)
@@ -162,7 +178,7 @@ def train(model):
             loss = model.train_on_batch(inputs, targets)
 
             if counter % 10 == 0:
-                print "loss = %.4f" % loss
+                print reset_time, counter, "loss = %.4f" % loss
 
             if counter % 1000 == 0:
                 # save the weight

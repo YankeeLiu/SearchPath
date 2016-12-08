@@ -734,7 +734,7 @@ void mazeGameState::calcuReward(){
 
 	for (int y = 0; y < size; ++y){
 		for (int x = 0; x < size; ++x){
-			rewardMat[x + y * size] = (-distance(ex, ey, x, y)/maxDistance) / 10.0f;
+			rewardMat[x + y * size] = (-distance(ex, ey, x, y) / maxDistance) / 10.0f;
 		}
 	}
 
@@ -749,6 +749,10 @@ float mazeGameState::move(int action){
     if(map[sx + sy * size] == -1){
         reset();
         return -10.0f;
+    }
+    else if(sx == ex && sy == ey){
+    	reset();
+    	return 0.0f;
     }
     else{
 		getImage();

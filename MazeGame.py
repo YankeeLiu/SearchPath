@@ -19,11 +19,11 @@ class Maze():
         self.buffer = Objdll.initGame(difficulty, scale, distance, blkSz)
         
         
-    def getState():
+    def getMazeState(self):
 
         for x in xrange(MAP_SIZE):
             for y in xrange(MAP_SIZE):
-                self.maze[x][y] = Objdll.getValue(buffer, x * MAP_SIZE + y)
+                self.maze[x][y] = Objdll.getValue(self.buffer, x * MAP_SIZE + y)
         return self.maze
 
     def moveToNextState(self, action):
@@ -31,10 +31,12 @@ class Maze():
         cMove = Objdll.move
         cMove.restype = c_float
         reward = cMove(action)
-        if reward < 0:
+        if reward < -10:
             terminated = True
-        print reward
         return terminated, reward
+
+    def setDistance(self, distance):
+        Objdll.setStartEndDistance(distance)
 
     def initialRender(self, weight, high, scale):
         Objdll.initRenderer(weight, high, BPP, scale)
@@ -50,12 +52,7 @@ def __main__():
 	while(Objdll.handleEvents()):
 		mg.moveToNextState(1)
 		mg.visualization(100, 100)
-		#time.sleep(0.1)
-		
-	
-
-
-
+        
 
 if __name__ == "__main__":
     __main__()
