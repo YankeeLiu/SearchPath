@@ -155,8 +155,8 @@ def train(model):
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
-                reward_t = -1.0 + gamma * np.max(model.predict(grayImages_t))
-                queueImg.addInfo((action_t, reward_t))
+                reward_t1 = reward_t + gamma * np.max(model.predict(grayImages_t))
+                queueImg.addInfo((action_t, reward_t1))
 
             # refresh counter
             counter += 1
