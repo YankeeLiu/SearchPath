@@ -164,17 +164,18 @@ private:
 
 extern "C"{
 	void initRenderer(int w, int h, int bpp, int scale);
+	
 	void render(int map, int w, int h);
-	int rgb(int r, int g, int b);
+	int RGB(int r, int g, int b);
 	bool handleEvents();
 
 	int createIntBuffer(int size);
 	void destroyIntBuffer(int buffer);
 
-    void initGame(int difficulty, int scale);
-    float move(int action);
-    void nextMap();
-    void setStartEndDistance(int distance);
+	int initGame(int difficulty, int scale, int initDistance, int blkSz);
+	float move(int action);
+	void nextMap();
+	void setStartEndDistance(int distance);
 
 	int getValue(int buffer, int i);
 	void setValue(int buffer, int i, int v);

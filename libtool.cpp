@@ -595,7 +595,7 @@ void renderer::render(int *map, size_t w, size_t h){
 	Draw_FillRect(screen, 0, 0, screen->w, screen->h, 0xffffff);
 	for (size_t y = 0; y < h; ++y){
 		for (size_t x = 0; x < w; ++x){
-			Draw_FillRect(screen, x * scale, y * scale, scale, scale, map[x + y * w] < 0 ? 0 : map[x + y * w]);
+			Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(abs(map[x + y * w]) * 255,0,0));
 		}
 	}
 	SDL_Flip(screen);
@@ -657,11 +657,11 @@ int memMgr::registBuffer(int *buffer){
 //==============================
 
 mazeGameState::mazeGameState(int difficulty, int scale, int initDistance, int blkSz):
-		difficulty(size), scale(scale), startEndDistance(initDistance), blockSz(blkSz){
+		difficulty(difficulty), scale(scale), startEndDistance(initDistance), blockSz(blkSz){
 	size = difficulty * scale;
-	map = new int(size * size);
-	rewardMat = new float(size * size);
-	renderBuffer = new int(size * size);
+	map = new int[size * size];
+	rewardMat = new float[size * size];
+	renderBuffer = new int[size * size];
 
 	nextMap();
 	reset();
@@ -694,6 +694,7 @@ void mazeGameState::getImage(){
 
 void mazeGameState::nextMap(){
 	int *mapMaze = new int[difficulty * difficulty];
+	
 	mazeGenerator::generateMaze(mapMaze, nullptr, difficulty, difficulty);
 
 	for (int y = 0; y < size; ++y){
@@ -702,9 +703,11 @@ void mazeGameState::nextMap(){
 		}
 	}
 
-    calcuReward();
+	reset();
+	getImage();
 
 	delete []mapMaze;
+
 }
 
 float distance(int x1, int y1, int x2, int y2){
@@ -727,29 +730,28 @@ void mazeGameState::calcuReward(){
 	tmp_x = up_distance > down_distance ? 0 : size;
 	tmp_y = left_distance > right_distance ? 0 : size;
 
-	int maxDistance = distance(ex, ey, tmp_x, tmp_y);
+	float maxDistance = distance(ex, ey, tmp_x, tmp_y);
 
 	for (int y = 0; y < size; ++y){
 		for (int x = 0; x < size; ++x){
-			if(map[x + y * size] == -1) {
-                rewardMat[x + y * size] = (-distance(ex, ey, x, y) / maxDistance) / 10.0f;
-            }
+			rewardMat[x + y * size] = (-distance(ex, ey, x, y)/maxDistance) / 10.0f;
 		}
 	}
 
 	rewardMat[ex + ey * size] = 0;
-
 }
 
 float mazeGameState::move(int action){
     sx += action == 2 ? 1 : action == 3 ? -1 : 0;
     sy += action == 0 ? 1 : action == 1 ? -1 : 0;
 
+
     if(map[sx + sy * size] == -1){
         reset();
         return -10.0f;
     }
     else{
+		getImage();
         return rewardMat[sx + sy * size];
     }
 }
@@ -766,7 +768,7 @@ void mazeGameState::reset(){
 		ex = sx + rand() % (2 * startEndDistance) - startEndDistance;
 		ey = sy + rand() % (2 * startEndDistance) - startEndDistance;
 	}
-
+	calcuReward();
 }
 
 
@@ -781,7 +783,7 @@ int *freeList[100];
 int bufferNum = 0;
 
 
-int rgb(int r, int g, int b){
+int RGB(int r, int g, int b){
 	return ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
 }
 
@@ -795,7 +797,7 @@ int initGame(int difficulty, int scale, int initDistance, int blkSz){
     gameState = new mazeGameState(difficulty, scale, initDistance, blkSz);
     int* buffer = nullptr;
     gameState->getRealBufferPtrs(buffer);
-    return memMan.registBuffer(buffer);;
+    return memMan.registBuffer(buffer);
 }
 
 float move(int action){

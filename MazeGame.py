@@ -26,20 +26,19 @@ class Maze():
     # 创建一个新的迷宫 random_map为二维矩阵
     def createNewMaze(self):
         bufferMap = Objdll.createIntBuffer(MAP_SIZE * MAP_SIZE)
-<<<<<<< HEAD
+
         Objdll.getRandomMaze(bufferMap, 5, 20);
 
         for x in range(MAP_SIZE):
             for y in range(MAP_SIZE):
                 self.maze[x][y] = Objdll.getValue(bufferMap, (x + y * MAP_SIZE))
-=======
+
         Objdll.getRandomMaze(bufferMap, 10, 10)
 
         for i in range(MAP_SIZE):
             for k in range(MAP_SIZE):
                 self.maze[i][k] = Objdll.getValue(
                     bufferMap, (k + i * MAP_SIZE))
->>>>>>> dev
 
         Objdll.destroyIntBuffer(bufferMap)
 
@@ -73,13 +72,9 @@ class Maze():
 
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
-<<<<<<< HEAD
                 current_image[i][j] = num_to_wall if self.maze[i][j] == -1 else num_to_road
-=======
                 currtent_image[i][j] = num_to_wall if self.maze[
                     i][j] == -1 else num_to_road
->>>>>>> dev
-
         for i in range(num_board_negetive, num_board_postive):
             for j in range(num_board_negetive, num_board_postive):
                 current_image[s_x + i][s_y + j] = num_to_people
@@ -89,14 +84,12 @@ class Maze():
 
         return current_image
 
-<<<<<<< HEAD
     #计算reward矩阵,输入为终点坐标
     def calRewardMatrix(self, x, y):
-=======
+
     # 计算reward矩阵,输入为终点坐标
     def calRewardMatrix(self, x, y):
         reward = np.zeros([MAP_SIZE, MAP_SIZE])
->>>>>>> dev
         max_distance = 0
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
@@ -107,12 +100,10 @@ class Maze():
         for i in range(MAP_SIZE):
             for j in range(MAP_SIZE):
                 if (self.maze[i][j] == -1):
-<<<<<<< HEAD
                     self.reward[i][j] = -1
                 elif self.maze[i][j] == 1:
                     self.reward[i][j] = 1 - np.sqrt((i - x) ** 2 + (j - y) ** 2) / max_distance
         self.reward[x][y] = 10.0
-=======
                     reward[i][j] = -100.0
                 elif self.maze[i][j] == 1:
                     reward[i][j] = - \
@@ -121,7 +112,7 @@ class Maze():
         reward[x][y] = 100.0
 
         return reward
->>>>>>> dev
+
 
     # 返回一个一个操作对应的reward值和是否结束
     def getReward(self, reward, x, y):
