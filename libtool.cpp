@@ -654,31 +654,132 @@ int memMgr::registBuffer(int *buffer){
 	return freePosList[ptrFreePosList--];
 }
 
+//==============================
 
+mazeGameState::mazeGameState(int difficulty, int scale, int initDistance, int blkSz):
+		difficulty(size), scale(scale), startEndDistance(initDistance), blockSz(blkSz){
+	size = difficulty * scale;
+	map = new int(size * size);
+	rewardMat = new float(size * size);
+	renderBuffer = new int(size * size);
+
+	nextMap();
+	reset();
+}
+
+mazeGameState::~mazeGameState(){
+	delete []map;
+	delete []rewardMat;
+	//delete []renderBuffer;
+}
+
+void mazeGameState::getRealBufferPtrs(int *&imageBuffer){
+    imageBuffer = renderBuffer;
+}
+
+void mazeGameState::getImage(){
+	for (int y = 0; y < size; ++y){
+		for (int x = 0; x < size; ++x){
+			renderBuffer[x + y * size] = map[x + y * size] == -1 ? -1 : 0;
+		}
+	}
+
+    for (int y = -blockSz; y <= blockSz; ++y){
+        for (int x = -blockSz; x <= blockSz; ++x) {
+            renderBuffer[sx + x + (sy + y) * size] = 0.5f;
+            renderBuffer[ex + x + (ey + y) * size] = 1.0f;
+        }
+    }
+}
+
+void mazeGameState::nextMap(){
+	int *mapMaze = new int[difficulty * difficulty];
+	mazeGenerator::generateMaze(mapMaze, nullptr, difficulty, difficulty);
+
+	for (int y = 0; y < size; ++y){
+		for (int x = 0; x < size; ++x){
+			map[x + y * size] = mapMaze[(x / scale) + (y / scale) * difficulty];
+		}
+	}
+
+    calcuReward();
+
+	delete []mapMaze;
+}
+
+float distance(int x1, int y1, int x2, int y2){
+	float dis = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	return dis;
+}
+
+void mazeGameState::setStartEndDistance(int distance){
+    startEndDistance = distance;
+}
+
+void mazeGameState::calcuReward(){
+	float up_distance, down_distance, left_distance, right_distance;
+	float tmp_x, tmp_y;
+	up_distance = distance(ex, ey, ex, 0);
+	down_distance = distance(ex, ey, ex, size);
+	left_distance = distance(ex, ey, 0, ey);
+	right_distance = distance(ex, ey, size, ey);
+
+	tmp_x = up_distance > down_distance ? 0 : size;
+	tmp_y = left_distance > right_distance ? 0 : size;
+
+	int maxDistance = distance(ex, ey, tmp_x, tmp_y);
+
+	for (int y = 0; y < size; ++y){
+		for (int x = 0; x < size; ++x){
+			if(map[x + y * size] == -1) {
+                rewardMat[x + y * size] = (-distance(ex, ey, x, y) / maxDistance) / 10.0f;
+            }
+		}
+	}
+
+	rewardMat[ex + ey * size] = 0;
+
+}
+
+float mazeGameState::move(int action){
+    sx += action == 2 ? 1 : action == 3 ? -1 : 0;
+    sy += action == 0 ? 1 : action == 1 ? -1 : 0;
+
+    if(map[sx + sy * size] == -1){
+        reset();
+        return -10.0f;
+    }
+    else{
+        return rewardMat[sx + sy * size];
+    }
+}
+
+void mazeGameState::reset(){
+	sx = sy = ex = ey = -1;
+
+	while(sx == -1 || sy == -1 || map[sx + sy * size] == -1){
+		sx = rand() % (size - 2 * blockSz) + blockSz;
+		sy = rand() % (size - 2 * blockSz) + blockSz;
+	}
+
+	while(ex == -1 || ey == -1 || map[ex + ey * size] == -1){
+		ex = sx + rand() % (2 * startEndDistance) - startEndDistance;
+		ey = sy + rand() % (2 * startEndDistance) - startEndDistance;
+	}
+
+}
 
 
 //==============================
 
-AStarSearcher *searcher = nullptr;
 renderer *mapRenderer = nullptr;
+mazeGameState *gameState = nullptr;
 memMgr memMan;
 
 int *bufferList[100];
 int *freeList[100];
 int bufferNum = 0;
 
-int getRealReward(int mapBuffer, int sx, int sy, int ex, int ey, int w, int h, int targetReward){
-	int *map = memMan.getBuffer(mapBuffer);
-	if (!searcher) searcher = new AStarSearcher(w, h);
-	if (searcher->getW() != w || searcher->getH() != h){
-		delete searcher;
-			searcher = new AStarSearcher(w, h);
-	}
-
-	searcher->search(map, sx, sy, ex, ey);
-		
-	return targetReward - searcher->getStepNum();
-}
 
 int rgb(int r, int g, int b){
 	return ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
@@ -687,6 +788,27 @@ int rgb(int r, int g, int b){
 void initRenderer(int w, int h, int bpp, int scale){
 	if(mapRenderer) delete mapRenderer;
 	mapRenderer = new renderer(w, h, bpp, scale);
+}
+
+int initGame(int difficulty, int scale, int initDistance, int blkSz){
+    if(gameState) delete gameState;
+    gameState = new mazeGameState(difficulty, scale, initDistance, blkSz);
+    int* buffer = nullptr;
+    gameState->getRealBufferPtrs(buffer);
+    return memMan.registBuffer(buffer);;
+}
+
+float move(int action){
+    return gameState->move(action);
+}
+
+void nextMap(){
+    gameState->nextMap();
+}
+
+void setStartEndDistance(int distance){
+    gameState->setStartEndDistance(distance);
+
 }
 
 bool handleEvents(){
@@ -706,40 +828,6 @@ int createIntBuffer(int size){
 
 void destroyIntBuffer(int buffer){
 	memMan.releaseMem(buffer);
-}
-
-void getRandomMaze(int mapMazeRenderedBuffer, int size, int scale){
-	int *mapMaze = new int[size * size];
-	int *mapMazeRendered = memMan.getBuffer(mapMazeRenderedBuffer);
-	mazeGenerator::generateMaze(mapMaze, nullptr, size, size);
-	
-	for (int y = 0; y < size * scale; ++y){
-		for (int x = 0; x < size * scale; ++x){
-			mapMazeRendered[x + y * (size * scale)] = mapMaze[(x / scale) + (y / scale) * size];
-		}
-	}
-		
-	delete []mapMaze;
-}
-
-int getBestStep(int mapBuffer, int sx, int sy, int ex, int ey, int w, int h){
-	int *map = memMan.getBuffer(mapBuffer);
-	if (!searcher) searcher = new AStarSearcher(w, h);
-	if (searcher->getW() != w || searcher->getH() != h){
-		delete searcher;
-		searcher = new AStarSearcher(w, h);
-	}
-
-	searcher->search(map, sx, sy, ex, ey);
-
-	int x = 0;
-	int y = 0;
-
-	searcher->getFirstStep(x, y);
-
-	if(x == -1 || y == -1) return -1;
-
-	return x + y * w;
 }
 
 int getValue(int buffer, int i){

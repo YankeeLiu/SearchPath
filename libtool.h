@@ -134,97 +134,33 @@ private:
 
 class mazeGameState{
 public:
-	mazeGameState(int size, int scale);
+	mazeGameState(int difficulty, int scale, int initDistance, int blkSz);
 	~mazeGameState();
 
-	int getRealPtrs(int *&map, int *&image, int *&reward);
-	int move();
+    void getRealBufferPtrs(int *&imageBuffer);
+	float move(int action);
+    void nextMap();
 	void getImage();
-	void calcuReward();
+    float getReward();
+    void setStartEndDistance(int distance);
+
 private:
 
-	int reset();
+	void reset();
+    void calcuReward();
 
 private:
 	int *map;
-	int *rewardMat;
+	float *rewardMat;
 	int *renderBuffer;
 
 	int sx = 0, sy = 0, ex = 0, ey = 0;
-	int size = 0;
+	int difficulty = 0;
 	int scale = 0;
+    int startEndDistance = 0;
+    int blockSz = 0;
+    int size = 0;
 };
-
-mazeGameState::mazeGameState(): size(size), scale(scale){
-	map = new int(size * size * scale * scale);
-	rewardMat = new int(size * size * scale * scale);
-	renderBuffer = new int(size * size * scale * scale);
-	reset();
-}
-
-mazeGameState::~mazeGameState(){
-	delete map;
-	delete rewardMat;
-	delete renderBuffer;
-}
-
-mazeGameState::getRealPtrs(int *&ptrMap, int *&ptrImage, int *&ptrReward){
-	ptrMap = map;
-	ptrImage = renderBuffer;
-	rewardMat = ptrReward;
-}
-
-void mazeGameState::getImage(){
-	for (int y = 0; y < size * scale; ++y){
-		for (int x = 0; x < size * scale; ++x){
-			renderBuffer[x + y * (size * scale)] = map[x + y * (size * scale)];
-		}
-	}
-}
-
-float distance(int x1, int y1, int x2, int y2){
-	dis = sqrt((x1-x2) * (x1-x2) + (y1-y2) * (y1-y2));
-	return dis;
-}
-
-void mazeGameState::calcuReward(){
-	int maxDistance = 0;
-	float up_distance, down_distance, left_distance, right_distance;
-	float tmp_x, tmp_y;
-	up_distance = distance(ex, ey, ex, size * scale);
-	down_distance = distance(ex, ey, ex, 0);
-	left_distance = distance(ex, ey, 0, ey);
-	right_distance = distance(ex, ey, size * scale, ey);
-
-	if(up_distance > down_distance)
-		tmp_x = size * scale;
-	else
-		tmp_x = 0;
-	if(left_distance > right_distance)
-		tmp_y = 0;
-	else
-		tmp_y = size * scale;
-
-	maxDistance = distance(ex, ey, tmp_x, tmp_y);
-
-	for (int y = 0; y < size * scale; ++y){
-		for (int x = 0; x < size * scale; ++x){
-			if(map[x + y * (size * scale)] == -1){
-				rewardMat[x + y * (size * scale)] = -1;
-			}else{
-				rewardMat[x + y * (size * scale)] = 1 - distance(ex, ey, x, y) / maxDistance;
-			}
-		}
-	}
-
-	rewardMat[ex + ey * (size * scale)] = 10;
-
-}
-
-void mazeGameState::reset(){
-
-
-}
 
 extern "C"{
 	void initRenderer(int w, int h, int bpp, int scale);
@@ -234,10 +170,11 @@ extern "C"{
 
 	int createIntBuffer(int size);
 	void destroyIntBuffer(int buffer);
-	
-	void getRandomMaze(int mapMazeRendered, int size, int scale);
-	int getBestStep(int map, int sx, int sy, int ex, int ey, int w, int h);
-	int getRealReward(int mapBuffer, int sx, int sy, int ex, int ey, int w, int h, int targetReward);
+
+    void initGame(int difficulty, int scale);
+    float move(int action);
+    void nextMap();
+    void setStartEndDistance(int distance);
 
 	int getValue(int buffer, int i);
 	void setValue(int buffer, int i, int v);
