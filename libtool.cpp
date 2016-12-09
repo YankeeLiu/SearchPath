@@ -16,7 +16,7 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 		int tempWallNum = 0;
 
 		for (int i = 0; i < w * h; ++i){
-			// Ê×ÏÈµØÍ¼È«²¿³õÊ¼»¯ÎªÇ½
+			// ï¿½ï¿½ï¿½Èµï¿½Í¼È«ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ÎªÇ½
 			map[i] = -1;
 		}
 
@@ -28,7 +28,7 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 		map[startX + startY * w] = 1;
 
 		while (tempWallNum > 0){
-			// ÏÈÑ¡Ò»¸öÇ½A
+			// ï¿½ï¿½Ñ¡Ò»ï¿½ï¿½Ç½A
 
 			int m = rand() % tempWallNum;
 			int k = tempWall[m];
@@ -40,10 +40,10 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 
 			--tempWallNum;
 
-			int choose[] = { 1, 2, 3, 4 };	// ÏÂÒ»²½Ñ¡Ôñ
+			int choose[] = { 1, 2, 3, 4 };	// ï¿½ï¿½Ò»ï¿½ï¿½Ñ¡ï¿½ï¿½
 
 			for (int i = 0; i < 5; ++i){
-				// Ëæ»ú´òÂÒchoose
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½choose
 				int m = rand() % 4;
 				int n = rand() % 4;
 				int k = choose[n];
@@ -56,10 +56,10 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 			int newX = 0, newY = 0;
 
 			for (int i = 0; i < 4 && !chosen; ++i){
-				// ÔÚÖÜÎ§ÕÒÒ»¸öÊÇÍ¨Â·µÄ¿éB
+				// ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Í¨Â·ï¿½Ä¿ï¿½B
 				switch (choose[i])
 				{
-				case 1:		// ÉÏ
+				case 1:		// ï¿½ï¿½
 					if (y > 1 && map[x + (y - 1) * w] > 0){
 						if (map[x + (y + 1) * w] < 0) isWall = true;
 						map[x + (y + 1) * w] = 1;
@@ -68,7 +68,7 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 						chosen = true;
 					}
 					break;
-				case 2:		// ÏÂ
+				case 2:		// ï¿½ï¿½
 					if (y + 1 < h - 1 && map[x + (y + 1) * w] > 0){
 						if (map[x + (y - 1) * w] < 0) isWall = true;
 						map[x + (y - 1) * w] = 1;
@@ -77,7 +77,7 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 						chosen = true;
 					}
 					break;
-				case 3:		// ×ó
+				case 3:		// ï¿½ï¿½
 					if (x > 1 && map[x - 1 + y * w] > 0){
 						if (map[x + 1 + y * w] < 0) isWall = true;
 						map[x + 1 + y * w] = 1;
@@ -86,7 +86,7 @@ void mazeGenerator::generateMaze(int *map, bool *path, int w, int h){
 						chosen = true;
 					}
 					break;
-				case 4:		// ÓÒ
+				case 4:		// ï¿½ï¿½
 					if (x + 1 < w - 1 && map[x + 1 + y * w] > 0){
 						if (map[x - 1 + y * w] < 0) isWall = true;
 						map[x - 1 + y * w] = 1;
@@ -146,7 +146,7 @@ node *list::getBest(){
 	}
 
 	if (best == root){
-		//µÚÒ»¸ö×î´ó
+		//ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½
 		root = root->next;
 	}
 	else{
@@ -389,17 +389,17 @@ void BSTree::insertNode(node *p){
 		}
 		else{
 			if (parent->bf == LH){
-				//ÊÇÓÒº¢×Ó£¬²»»áÒýÆð²»Æ½ºâ
+				//ï¿½ï¿½ï¿½Òºï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½
 				parent->bf = EH;
 				return;
 			}
 			else if (parent->bf == RH){
-				//ÊÇÓÒº¢×Ó£¬²¢ÇÒÒýÆðparentµÄ²»Æ½ºâ
+				//ï¿½ï¿½ï¿½Òºï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½parentï¿½Ä²ï¿½Æ½ï¿½ï¿½
 				rightbalance(parent, child);
 				break;
 			}
 			else{
-				//ÊÇÓÒº¢×Ó£¬²¢ÇÒ¿ÉÄÜÒýÆðparentµÄparentµÄ²»Æ½ºâ
+				//ï¿½ï¿½ï¿½Òºï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½parentï¿½ï¿½parentï¿½Ä²ï¿½Æ½ï¿½ï¿½
 				parent->bf = RH;
 				child = parent;
 				parent = parent->parentT;
@@ -436,14 +436,14 @@ void AStarSearcher::search(int *map, int sx, int sy, int ex, int ey){
 	OPEN.reset();
 	CLOSE.reset();
 	lastNode = nullptr;
-	node *startNode = new node;						//³õÊ¼½Úµã£¨Æðµã£©
-	startNode->parent = nullptr;					//³õÊ¼½ÚµãÎÞÇ°Çý
-	startNode->tileNum = getTile(sx, sy);			//ÔÚ½ÚµãÖÐ´æÈë¿éºÅ
-	startNode->x = sx, startNode->y = sy;			//´Ó¿éºÅ»ñÈ¡XY×ø±ê²¢·ÅÈë½Úµã
-	startNode->gPast = 0;							//ÒÑ¾­×ß¹ýµÄ¼ÆËã³öµÄÊµ¼Ê¼ÛÖµ
-	startNode->hEst = heuristic(sx, sy, ex, ey);	//ÓÃÆô·¢Ê½º¯Êý¼ÆËã³öÀ´µÄÔ¤¼Æ¼ÛÖµ
-	startNode->fValue = startNode->gPast + startNode->hEst;		//×Ü¼ÛÖµ
-	OPEN.insert(startNode);		//¼ÓÈëOPEN±íÖÐ
+	node *startNode = new node;						//ï¿½ï¿½Ê¼ï¿½Úµã£¨ï¿½ï¿½ã£©
+	startNode->parent = nullptr;					//ï¿½ï¿½Ê¼ï¿½Úµï¿½ï¿½ï¿½Ç°ï¿½ï¿½
+	startNode->tileNum = getTile(sx, sy);			//ï¿½Ú½Úµï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½
+	startNode->x = sx, startNode->y = sy;			//ï¿½Ó¿ï¿½Å»ï¿½È¡XYï¿½ï¿½ï¿½ê²¢ï¿½ï¿½ï¿½ï¿½Úµï¿½
+	startNode->gPast = 0;							//ï¿½Ñ¾ï¿½ï¿½ß¹ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½Ê¼ï¿½Öµ
+	startNode->hEst = heuristic(sx, sy, ex, ey);	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½Æ¼ï¿½Öµ
+	startNode->fValue = startNode->gPast + startNode->hEst;		//ï¿½Ü¼ï¿½Öµ
+	OPEN.insert(startNode);		//ï¿½ï¿½ï¿½ï¿½OPENï¿½ï¿½ï¿½ï¿½
 
 	while (OPEN.getLength() > 0)
 	{
@@ -451,26 +451,26 @@ void AStarSearcher::search(int *map, int sx, int sy, int ex, int ey){
 		CLOSE.insert(bestNode);
 		if (bestNode->x == ex && bestNode->y == ey){
 			lastNode = bestNode;
-			return;		//Çó½â½áÊø
+			return;		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		}
-		GenerateSucc(map, bestNode, bestNode->x, bestNode->y - 1, ex, ey);			//Éú³ÉÉÏ½Úµã
-		//GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y - 1, ex, ey);		//Éú³ÉÓÒÉÏ½Úµã
-		GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y, ex, ey);			//Éú³ÉÓÒ½Úµã
-		//GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y + 1, ex, ey);		//Éú³ÉÓÒÏÂ½Úµã
-		GenerateSucc(map, bestNode, bestNode->x, bestNode->y + 1, ex, ey);			//Éú³ÉÏÂ½Úµã
-		//GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y + 1, ex, ey);		//Éú³É×óÏÂ½Úµã
-		GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y, ex, ey);			//Éú³É×ó½Úµã
-		//GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y - 1, ex, ey);		//Éú³É×óÉÏ½Úµã
+		GenerateSucc(map, bestNode, bestNode->x, bestNode->y - 1, ex, ey);			//ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Úµï¿½
+		//GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y - 1, ex, ey);		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Úµï¿½
+		GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y, ex, ey);			//ï¿½ï¿½ï¿½ï¿½ï¿½Ò½Úµï¿½
+		//GenerateSucc(map, bestNode, bestNode->x + 1, bestNode->y + 1, ex, ey);		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â½Úµï¿½
+		GenerateSucc(map, bestNode, bestNode->x, bestNode->y + 1, ex, ey);			//ï¿½ï¿½ï¿½ï¿½ï¿½Â½Úµï¿½
+		//GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y + 1, ex, ey);		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â½Úµï¿½
+		GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y, ex, ey);			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
+		//GenerateSucc(map, bestNode, bestNode->x - 1, bestNode->y - 1, ex, ey);		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Úµï¿½
 	}
 	return;
 }
 
 void AStarSearcher::GenerateSucc(int *map, node *bestNode, int x, int y, int ex, int ey){
-	if (x < 0 || x >= w || y < 0 || y >= h || map[getTile(x, y)] < 0) return;	//Õâ²»ÊÇÍ¨Â·
+	if (x < 0 || x >= w || y < 0 || y >= h || map[getTile(x, y)] < 0) return;	//ï¿½â²»ï¿½ï¿½Í¨Â·
 	node *oldNode = nullptr;
 	int i;
 	if ((oldNode = OPEN.find(getTile(x, y))) != nullptr){
-		//ÔÚOPEN±íÀïÕÒµ½ÁËÕâ¸ö½Úµã,ËµÃ÷ÓÐÐÂµÄÂ·,ÄÇÃ´Èç¹ûÐÂÕÒµ½µÄÕâÌõÂ·¸ü¶Ì£¨±È½ÏgPast¸üÐ¡£¬ÄÇÃ´ÐÂµÄÂ·¸üÓÅ£©
+		//ï¿½ï¿½OPENï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½,Ëµï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½Â·,ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½Ì£ï¿½ï¿½È½ï¿½gPastï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½Ã´ï¿½Âµï¿½Â·ï¿½ï¿½ï¿½Å£ï¿½
 		for (i = 0; i < 4; ++i)
 		if (bestNode->children[i] == nullptr)
 			break;
@@ -484,12 +484,12 @@ void AStarSearcher::GenerateSucc(int *map, node *bestNode, int x, int y, int ex,
 
 	}
 	else if ((oldNode = CLOSE.find(getTile(x, y))) != nullptr){
-		//ÔÚCLOSE±íÀïÕÒµ½ÁËÕâ¸ö½Úµã£¬²»¹ÜËû
+		//ï¿½ï¿½CLOSEï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµã£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		return;
 	}
 	else
 	{
-		//²»ÔÚOPENºÍCLOSE±íÀïÃæ£¬ËùÒÔÖØÐÂÉú³É½Úµã
+		//ï¿½ï¿½ï¿½ï¿½OPENï¿½ï¿½CLOSEï¿½ï¿½ï¿½ï¿½ï¿½æ£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É½Úµï¿½
 		node *newNode = new node;
 		newNode->parent = bestNode;
 		newNode->gPast = bestNode->gPast + map[getTile(x, y)];
@@ -593,9 +593,20 @@ bool renderer::handleEvents(){
 
 void renderer::render(int *map, size_t w, size_t h){
 	Draw_FillRect(screen, 0, 0, screen->w, screen->h, 0xffffff);
+	float tmp;
 	for (size_t y = 0; y < h; ++y){
 		for (size_t x = 0; x < w; ++x){
-			Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(abs(map[x + y * w]) * 255,0,0));
+			tmp = map[x + y * w];
+			printf("%f\n", tmp);
+			if(tmp == 0.5){
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(abs(tmp) * 255,0,0));
+				printf("1");
+			}else if(tmp == 1.0){
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,abs(tmp) * 255,0));
+				printf("2");
+			}else{
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,0,abs(tmp) * 255));
+			}	
 		}
 	}
 	SDL_Flip(screen);

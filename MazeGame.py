@@ -46,12 +46,16 @@ class Maze():
 
 
 def __main__():
-	mg = Maze()
-	mg.createNewMaze(10, 10, 3, 2)
-	mg.initialRender(500, 500, 5)
-	while(Objdll.handleEvents()):
-		mg.moveToNextState(1)
-		mg.visualization(100, 100)
+    mg = Maze()
+    mg.createNewMaze(10, 10, 3, 2)
+    mg.initialRender(500, 500, 5)
+    i = 0
+    while(i<=0):
+        Objdll.handleEvents()
+        mg.moveToNextState(1)
+        mg.visualization(100, 100)
+        time.sleep(100)
+        i += 1
         
 
 if __name__ == "__main__":
