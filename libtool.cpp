@@ -592,20 +592,18 @@ bool renderer::handleEvents(){
 
 
 void renderer::render(int *map, size_t w, size_t h){
+	float *rmap = (float *)map;
 	Draw_FillRect(screen, 0, 0, screen->w, screen->h, 0xffffff);
 	float tmp;
 	for (size_t y = 0; y < h; ++y){
 		for (size_t x = 0; x < w; ++x){
-			tmp = map[x + y * w];
-			printf("%f\n", tmp);
-			if(tmp == 0.5){
-				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(abs(tmp) * 255,0,0));
-				printf("1");
-			}else if(tmp == 1.0){
-				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,abs(tmp) * 255,0));
-				printf("2");
+			tmp = rmap[x + y * w];
+			if(tmp == 0.5f){
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(fabs(tmp) * 255,0,0));
+			}else if(tmp == 1.0f){
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,fabs(tmp) * 255,0));
 			}else{
-				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,0,abs(tmp) * 255));
+				Draw_FillRect(screen, x * scale, y * scale, scale, scale, RGB(0,0,fabs(tmp) * 255));
 			}	
 		}
 	}
@@ -647,8 +645,9 @@ void memMgr::releaseMem(int buffer){
 	freePosList[++ptrFreePosList] = buffer;
 }
 
-int memMgr::getValue(int buffer, int pos){
-	return memlist[buffer][pos];
+float memMgr::getValue(int buffer, int pos){
+	float *ptr = (float *)memlist[buffer];
+	return ptr[pos];
 }
 
 void memMgr::setValue(int buffer, int pos, int value){
@@ -672,7 +671,7 @@ mazeGameState::mazeGameState(int difficulty, int scale, int initDistance, int bl
 	size = difficulty * scale;
 	map = new int[size * size];
 	rewardMat = new float[size * size];
-	renderBuffer = new int[size * size];
+	renderBuffer = new float[size * size];
 
 	nextMap();
 	reset();
@@ -685,16 +684,16 @@ mazeGameState::~mazeGameState(){
 }
 
 void mazeGameState::getRealBufferPtrs(int *&imageBuffer){
-    imageBuffer = renderBuffer;
+    imageBuffer = (int *)renderBuffer;
 }
 
 void mazeGameState::getImage(){
 	for (int y = 0; y < size; ++y){
 		for (int x = 0; x < size; ++x){
-			renderBuffer[x + y * size] = map[x + y * size] == -1 ? -1 : 0;
+			renderBuffer[x + y * size] = map[x + y * size] == -1 ? -1.0f : 0;
 		}
 	}
-
+	
     for (int y = -blockSz; y <= blockSz; ++y){
         for (int x = -blockSz; x <= blockSz; ++x) {
             renderBuffer[sx + x + (sy + y) * size] = 0.5f;

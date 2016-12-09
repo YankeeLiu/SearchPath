@@ -15,13 +15,13 @@ imgRow, imgCol = 100, 100
 imgChannel = 4
 actionNum = 4
 initDistance = 1
-batchSz = 64
+batchSz = 32
 gamma = 0.99
 observe = 3200
 replayMemory = 20000
 Epsilo = 0.3
 resetLimitaion = 300000
-blkSz = 2
+blkSz = 3
 distance = 2
 difficulty = 5
 scale = 20
@@ -31,13 +31,13 @@ renderSize = imgRow * renderScale
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(
+    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(
         shape, scale=0.01, name=name), border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
     model.add(Activation('relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init=lambda shape,
                             name: normal(shape, scale=0.01, name=name), border_mode='same'))
     model.add(Activation('relu'))
-    model.add(Convolution2D(32, 2, 2, subsample=(2, 2), init=lambda shape,
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init=lambda shape,
                             name: normal(shape, scale=0.01, name=name), border_mode='same'))
     model.add(Activation('relu'))
     model.add(Flatten())
@@ -99,9 +99,6 @@ def train(model):
     mz = mg.Maze()
     mz.createNewMaze(difficulty, scale, distance, blkSz)
 
-    # pick random start & end postion
-    init_image = mz.getMazeState()
-
     # initialized two counters
     counter = -1
     reset_time = -1
@@ -120,6 +117,10 @@ def train(model):
         counter += 1
         queueImg.resetQueue()
         # Create continual 4 gray image
+
+	# pick random start & end postion
+    	init_image = mz.getMazeState()
+
         for i in range(imgChannel):
             queueImg.append(init_image)
 

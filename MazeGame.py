@@ -20,10 +20,11 @@ class Maze():
         
         
     def getMazeState(self):
-
+	fgetValue = Objdll.getValue;
+	fgetValue.restype = c_float
         for x in xrange(MAP_SIZE):
             for y in xrange(MAP_SIZE):
-                self.maze[x][y] = Objdll.getValue(self.buffer, x * MAP_SIZE + y)
+                self.maze[x][y] = fgetValue(self.buffer, x * MAP_SIZE + y)
         return self.maze
 
     def moveToNextState(self, action):
@@ -50,11 +51,11 @@ def __main__():
     mg.createNewMaze(10, 10, 3, 2)
     mg.initialRender(500, 500, 5)
     i = 0
-    while(i<=0):
-        Objdll.handleEvents()
+    while(Objdll.handleEvents()):
+        mg.getMazeState()
         mg.moveToNextState(1)
         mg.visualization(100, 100)
-        time.sleep(100)
+        #time.sleep(0.1)
         i += 1
         
 

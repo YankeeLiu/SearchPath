@@ -122,7 +122,7 @@ public:
 	~memMgr();
 	int allocateMem(int size);
 	void releaseMem(int buffer);
-	int getValue(int buffer, int pos);
+	float getValue(int buffer, int pos);
 	void setValue(int buffer, int pos, int value);
 	int* getBuffer(int buffer);
 	int registBuffer(int *buffer);
@@ -152,7 +152,7 @@ private:
 private:
 	int *map;
 	float *rewardMat;
-	int *renderBuffer;
+	float *renderBuffer;
 
 	int sx = 0, sy = 0, ex = 0, ey = 0;
 	int difficulty = 0;
