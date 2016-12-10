@@ -177,6 +177,6 @@ extern "C"{
 	void nextMap();
 	void setStartEndDistance(int distance);
 
-	int getValue(int buffer, int i);
+	float getValue(int buffer, int i);
 	void setValue(int buffer, int i, int v);
 }

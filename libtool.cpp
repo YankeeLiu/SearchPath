@@ -760,12 +760,12 @@ float mazeGameState::move(int action){
         reset();
         return -10.0f;
     }
-    else if(sx == ex && sy == ey){
+    else if(abs(sx - ex) < blockSz && abs(sy - ey) < blockSz){
     	reset();
     	return 0.0f;
     }
     else{
-		getImage();
+	getImage();
         return rewardMat[sx + sy * size];
     }
 }
@@ -846,7 +846,7 @@ void destroyIntBuffer(int buffer){
 	memMan.releaseMem(buffer);
 }
 
-int getValue(int buffer, int i){
+float getValue(int buffer, int i){
 	return memMan.getValue(buffer, i);
 }
 
