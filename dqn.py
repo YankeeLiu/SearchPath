@@ -26,6 +26,7 @@ distance = 2
 difficulty = 5
 scale = 20
 renderScale = 5
+alpha = 0.1
 renderSize = imgRow * renderScale
 
 
@@ -42,7 +43,7 @@ def getModel():
     model.add(Activation('relu'))
     model.add(Flatten())
     model.add(Dense(512, init="glorot_uniform"))
-    model.add(Activation('relu'))
+    model.add(Activation('softmax'))
     model.add(Dense(actionNum, init="glorot_uniform"))
 
     adam = Adam(lr=1e-5)
@@ -106,6 +107,9 @@ def train(model):
     # initialized a imag manager
     queueImg = imgQueue()
 
+    # set average reward
+    average_reward = 0
+
     inputs = np.zeros((batchSz, imgChannel, imgRow, imgCol))
     targets = np.zeros((batchSz, actionNum))
     mz.initialRender(renderSize, renderSize, renderScale)
@@ -148,6 +152,10 @@ def train(model):
             mz.visualization(imgRow, imgCol)
             # add the newest state
             queueImg.append(image)
+
+            # cal average reward
+            average_reward = average_reward + \
+                alpha * (reward_t - average_reward)
 
             if terminated:
                 # if knock into the wall
