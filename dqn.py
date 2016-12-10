@@ -31,21 +31,19 @@ renderSize = imgRow * renderScale
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(
-        shape, scale=0.01, name=name), border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
+    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init="glorot_uniform",
+                            border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
     model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init=lambda shape,
-                            name: normal(shape, scale=0.01, name=name), border_mode='same'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2),
+                            init="glorot_uniform", border_mode='same'))
     model.add(Activation('relu'))
-    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init=lambda shape,
-                            name: normal(shape, scale=0.01, name=name), border_mode='same'))
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2),
+                            init="glorot_uniform", border_mode='same'))
     model.add(Activation('relu'))
     model.add(Flatten())
-    model.add(Dense(512, init=lambda shape,
-                    name: normal(shape, scale=0.01, name=name)))
+    model.add(Dense(512, init="glorot_uniform"))
     model.add(Activation('relu'))
-    model.add(Dense(actionNum, init=lambda shape,
-                    name: normal(shape, scale=0.01, name=name)))
+    model.add(Dense(actionNum, init="glorot_uniform"))
 
     adam = Adam(lr=1e-5)
     model.compile(loss='mse', optimizer=adam)
@@ -53,6 +51,7 @@ def getModel():
 
 
 class imgQueue:
+
     def __init__(self):
         self.__queue = deque()
         self.__info = deque()
@@ -114,18 +113,18 @@ def train(model):
     while(True):
         # initalized some flags
         reset_time += 1
-        counter += 1
+        counter = 0
         queueImg.resetQueue()
         # Create continual 4 gray image
 
-	# pick random start & end postion
-    	init_image = mz.getMazeState()
+        # pick random start & end postion
+        init_image = mz.getMazeState()
 
         for i in range(imgChannel):
             queueImg.append(init_image)
 
-        #change the difficulty  &  random rate
-        mz.setDistance((distance+1))
+        # change the difficulty  &  random rate
+        mz.setDistance((distance + 1))
         randomEpsilon -= 0.01
 
         while(counter < resetLimitaion):
@@ -134,12 +133,12 @@ def train(model):
             if np.random.random() < randomEpsilon:
                 # choose action randomly
                 action_t = np.random.randint(0, actionNum)
-                
+
             else:
                 # choose the max prediction reward
                 grayImages_t = queueImg.getChannels()
                 predict_action = model.predict(grayImages_t)
-                action_t = np.argmax(predict_action)  
+                action_t = np.argmax(predict_action)
 
             # change the postion depends on action index
             terminated, reward_t = mz.moveToNextState(action_t)
@@ -156,7 +155,8 @@ def train(model):
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
-                reward_t1 = reward_t + gamma * np.max(model.predict(grayImages_t))
+                reward_t1 = reward_t + gamma * \
+                    np.max(model.predict(grayImages_t))
                 queueImg.addInfo((action_t, reward_t1))
 
             # refresh counter
