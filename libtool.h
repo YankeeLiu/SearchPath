@@ -143,6 +143,8 @@ public:
 	void getImage();
     float getReward();
     void setStartEndDistance(int distance);
+    int locateCurrentPositionX();
+    int locateCurrentPositionY();
 
 private:
 
@@ -179,4 +181,7 @@ extern "C"{
 
 	int getValue(int buffer, int i);
 	void setValue(int buffer, int i, int v);
+
+	int locateCurrentPositionX();
+    int locateCurrentPositionY();
 }

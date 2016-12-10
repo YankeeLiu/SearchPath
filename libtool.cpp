@@ -730,37 +730,40 @@ void mazeGameState::setStartEndDistance(int distance){
 }
 
 void mazeGameState::calcuReward(){
-	float up_distance, down_distance, left_distance, right_distance;
-	float tmp_x, tmp_y;
-	up_distance = distance(ex, ey, ex, 0);
-	down_distance = distance(ex, ey, ex, size);
-	left_distance = distance(ex, ey, 0, ey);
-	right_distance = distance(ex, ey, size, ey);
+	// float up_distance, down_distance, left_distance, right_distance;
+	// float tmp_x, tmp_y;
+	// up_distance = distance(ex, ey, ex, 0);
+	// down_distance = distance(ex, ey, ex, size);
+	// left_distance = distance(ex, ey, 0, ey);
+	// right_distance = distance(ex, ey, size, ey);
 
-	tmp_x = up_distance > down_distance ? 0 : size;
-	tmp_y = left_distance > right_distance ? 0 : size;
+	// tmp_x = up_distance > down_distance ? 0 : size;
+	// tmp_y = left_distance > right_distance ? 0 : size;
 
-	float maxDistance = distance(ex, ey, tmp_x, tmp_y);
+	// float maxDistance = distance(ex, ey, tmp_x, tmp_y);
 
 	for (int y = 0; y < size; ++y){
 		for (int x = 0; x < size; ++x){
-			rewardMat[x + y * size] = (-distance(ex, ey, x, y) / maxDistance) / 10.0f;
+			rewardMat[x + y * size] =  -0.1; //(-distance(ex, ey, x, y) / maxDistance);
 		}
 	}
 
-	rewardMat[ex + ey * size] = 0;
+	rewardMat[ex + ey * size] = 0.0;
 }
 
 float mazeGameState::move(int action){
+	int bak_sx = sx;
+	int bak_sy = sy;
     sx += action == 2 ? 1 : action == 3 ? -1 : 0;
     sy += action == 0 ? 1 : action == 1 ? -1 : 0;
 
 
     if(map[sx + sy * size] == -1){
-        reset();
-        return -10.0f;
+        sx = bak_sx;
+        sy = bak_sy;
+        return -1.0f;
     }
-    else if(sx == ex && sy == ey){
+    else if(abs(sx - ex) < blockSz && abs(sy - ey) < blockSz ){
     	reset();
     	return 0.0f;
     }
@@ -768,6 +771,16 @@ float mazeGameState::move(int action){
 		getImage();
         return rewardMat[sx + sy * size];
     }
+}
+
+int mazeGameState::locateCurrentPositionX(){
+	
+	return sx;
+}
+
+int mazeGameState::locateCurrentPositionY(){
+	
+	return sy;
 }
 
 void mazeGameState::reset(){
@@ -852,4 +865,12 @@ int getValue(int buffer, int i){
 
 void setValue(int buffer, int i, int v){
 	memMan.setValue(buffer, i, v);
+}
+
+int locateCurrentPositionX(){
+	return gameState->locateCurrentPositionX();
+}
+
+int locateCurrentPositionY(){
+	return gameState->locateCurrentPositionY();
 }

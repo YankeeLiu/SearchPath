@@ -26,7 +26,8 @@ distance = 2
 difficulty = 5
 scale = 20
 renderScale = 5
-alpha = 0.1
+# alpha = 0.1
+# beta = 0.1
 renderSize = imgRow * renderScale
 
 
@@ -43,7 +44,7 @@ def getModel():
     model.add(Activation('relu'))
     model.add(Flatten())
     model.add(Dense(512, init="glorot_uniform"))
-    model.add(Activation('softmax'))
+    model.add(Activation('relu'))
     model.add(Dense(actionNum, init="glorot_uniform"))
 
     adam = Adam(lr=1e-5)
@@ -123,49 +124,64 @@ def train(model):
 
         # pick random start & end postion
         init_image = mz.getMazeState()
+        mz.loactedStartPoint()
+        mz.resetQValueMartix()
 
         for i in range(imgChannel):
             queueImg.append(init_image)
 
         # change the difficulty  &  random rate
         mz.setDistance((distance + 1))
-        randomEpsilon -= 0.01
 
         while(counter < resetLimitaion):
 
+            mz.loactedStartPoint()
             # making decision
-            if np.random.random() < randomEpsilon:
-                # choose action randomly
-                action_t = np.random.randint(0, actionNum)
+            # choose action randomly
+            random_action_t = np.random.randint(0, actionNum)
+            tmp_x, tmp_y = mz.calTempPostion(random_action_t)
+            random_action_q_value = mz.requestQValue(tmp_x, tmp_y)
 
+            # choose the max prediction reward
+            grayImages_t = queueImg.getChannels()
+            predict_action = model.predict(grayImages_t)
+            predicted_action_t = np.argmax(predict_action)
+            tmp_x, tmp_y = mz.calTempPostion(predicted_action_t)
+            predicted_action_q_value = mz.requestQValue(tmp_x, tmp_y)
+
+            print random_action_q_value, predicted_action_q_value
+
+            if random_action_q_value >= predicted_action_q_value:
+                action_t = random_action_t
             else:
-                # choose the max prediction reward
-                grayImages_t = queueImg.getChannels()
-                predict_action = model.predict(grayImages_t)
-                action_t = np.argmax(predict_action)
+                action_t = predicted_action_t
 
             # change the postion depends on action index
             terminated, reward_t = mz.moveToNextState(action_t)
             # get the next state
             image = mz.getMazeState()
+            mz.loactedStartPoint()
             # rende current state
             mz.visualization(imgRow, imgCol)
             # add the newest state
             queueImg.append(image)
 
             # cal average reward
-            average_reward = average_reward + \
-                alpha * (reward_t - average_reward)
+            # average_reward = average_reward + \
+            # alpha * (reward_t - average_reward)
 
+            # reward_t = reward_t + beta * (reward_t - average_reward)
             if terminated:
                 # if knock into the wall
                 queueImg.addInfo((action_t, reward_t))
+                mz.resetQValueMartix()
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
-                reward_t1 = reward_t + gamma * \
+                reward_t = reward_t + gamma * \
                     np.max(model.predict(grayImages_t))
-                queueImg.addInfo((action_t, reward_t1))
+                queueImg.addInfo((action_t, reward_t))
+                mz.updateQValueMatrix(reward_t)
 
             # refresh counter
             counter += 1
