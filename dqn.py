@@ -33,21 +33,21 @@ renderSize = imgRow * renderScale
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(shape, scale=0.01, name=name),
+    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(shape, scale=0.1, name=name),
                             border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
-    model.add(Activation('sigmoid'))
-    model.add(Convolution2D(64, 3, 3, subsample=(2, 2),
-                            init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
-    model.add(Activation('sigmoid'))
-    model.add(Convolution2D(32, 3, 3, subsample=(2, 2),
-                            init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
-    model.add(Activation('sigmoid'))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init=lambda shape, name: normal(
+        shape, scale=0.01, name=name), border_mode='same'))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init=lambda shape,
+                            name: normal(shape, scale=0.1, name=name), border_mode='same'))
+    model.add(Activation('relu'))
     model.add(Flatten())
     model.add(Dense(512, init=lambda shape,
-                    name: normal(shape, scale=0.01, name=name)))
-    model.add(Activation('sigmoid'))
+                    name: normal(shape, scale=0.1, name=name)))
+    model.add(Activation('relu'))
     model.add(Dense(actionNum, init=lambda shape,
-                    name: normal(shape, scale=0.01, name=name)))
+                    name: normal(shape, scale=0.1, name=name)))
 
     adam = Adam(lr=1e-5)
     model.compile(loss='mse', optimizer=adam)
@@ -126,8 +126,6 @@ def train(model):
 
         # pick random start & end postion
         init_image = mz.getMazeState()
-        mz.loactedStartPoint()
-        mz.resetQValueMartix()
 
         for i in range(imgChannel):
             queueImg.append(init_image)
@@ -137,13 +135,10 @@ def train(model):
 
         while(counter < resetLimitaion):
 
-            mz.loactedStartPoint()
             # making decision
             # choose action randomly
             if np.random.random() < randomEpsilon:
                 random_action_t = np.random.randint(0, actionNum)
-                tmp_x, tmp_y = mz.calTempPostion(random_action_t)
-                q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = random_action_t
 
             else:
@@ -152,32 +147,17 @@ def train(model):
                 grayImages_t = queueImg.getChannels()
                 predict_action = model.predict(grayImages_t)
                 predicted_action_t = np.argmax(predict_action)
-                tmp_x, tmp_y = mz.calTempPostion(predicted_action_t)
-                q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = predicted_action_t
-
-            # print random_action_q_value, predicted_action_q_value
-
-            # if random_action_q_value >= predicted_action_q_value:
-            #     action_t = random_action_t
-            # else:
-            #     action_t = predicted_action_t
 
             # change the postion depends on action index
             terminated, reward_t = mz.moveToNextState(action_t)
             # get the next state
             image = mz.getMazeState()
-            mz.loactedStartPoint()
             # rende current state
             mz.visualization(imgRow, imgCol)
             # add the newest state
             queueImg.append(image)
 
-            # cal average reward
-            # average_reward = average_reward + \
-            # alpha * (reward_t - average_reward)
-
-            # reward_t = reward_t + beta * (reward_t - average_reward)
             if terminated:
                 # if knock into the wall
                 queueImg.addInfo((action_t, reward_t))
@@ -185,11 +165,8 @@ def train(model):
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
-                q_value += gamma * (reward_t + beta *
-                                    (np.max(model.predict(grayImages_t)) - q_value))
-                print np.max(model.predict(grayImages_t)), q_value
-                queueImg.addInfo((action_t, q_value))
-                mz.updateQValueMatrix(q_value)
+                reward_t += gamma * np.max(model.predict(grayImages_t))
+                queueImg.addInfo((action_t, reward_t))
 
             # refresh counter
             counter += 1
