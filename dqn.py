@@ -16,8 +16,8 @@ imgChannel = 4
 actionNum = 4
 initDistance = 1
 batchSz = 64
-gamma = 0.99
-observe = 3200
+gamma = 0.1
+observe = 320
 replayMemory = 20000
 Epsilo = 0.4
 resetLimitaion = 300000
@@ -27,7 +27,7 @@ difficulty = 5
 scale = 20
 renderScale = 5
 # alpha = 0.1
-# beta = 0.1
+beta = 0.99
 renderSize = imgRow * renderScale
 
 
@@ -143,7 +143,7 @@ def train(model):
             if np.random.random() < randomEpsilon:
                 random_action_t = np.random.randint(0, actionNum)
                 tmp_x, tmp_y = mz.calTempPostion(random_action_t)
-                random_action_q_value = mz.requestQValue(tmp_x, tmp_y)
+                q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = random_action_t
 
             else:
@@ -153,7 +153,7 @@ def train(model):
                 predict_action = model.predict(grayImages_t)
                 predicted_action_t = np.argmax(predict_action)
                 tmp_x, tmp_y = mz.calTempPostion(predicted_action_t)
-                predicted_action_q_value = mz.requestQValue(tmp_x, tmp_y)
+                q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = predicted_action_t
 
             # print random_action_q_value, predicted_action_q_value
@@ -185,10 +185,11 @@ def train(model):
             else:
                 # calculate reward
                 grayImages_t = queueImg.getChannels()
-                reward_t = reward_t + gamma * \
-                    np.max(model.predict(grayImages_t))
-                queueImg.addInfo((action_t, reward_t))
-                mz.updateQValueMatrix(reward_t)
+                q_value += gamma * (reward_t + beta *
+                                    (np.max(model.predict(grayImages_t)) - q_value))
+                print np.max(model.predict(grayImages_t)), q_value
+                queueImg.addInfo((action_t, q_value))
+                mz.updateQValueMatrix(q_value)
 
             # refresh counter
             counter += 1

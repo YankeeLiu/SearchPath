@@ -1,4 +1,10 @@
 from collections import deque
+import numpy as np
+
+
+replayMemory = 25000
+imgChannel = 4
+imgRow, imgCol = 100, 100
 
 
 class imgQueue:
@@ -27,7 +33,7 @@ class imgQueue:
             # get last 4 image
             grayImages_t[0][i] = self.__queue[i + position]
 
-        return grayImages_t
+        return grayImages_t.reshape([1, imgRow, imgCol, imgChannel])
 
     def getInfo(self, position=-1):
         return self.__info[position]
