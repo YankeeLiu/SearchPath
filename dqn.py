@@ -15,11 +15,11 @@ imgRow, imgCol = 100, 100
 imgChannel = 4
 actionNum = 4
 initDistance = 1
-batchSz = 32
+batchSz = 64
 gamma = 0.99
 observe = 3200
 replayMemory = 20000
-Epsilo = 0.3
+Epsilo = 0.4
 resetLimitaion = 300000
 blkSz = 3
 distance = 2
@@ -33,19 +33,21 @@ renderSize = imgRow * renderScale
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init="glorot_uniform",
+    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(shape, scale=0.01, name=name),
                             border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
-    model.add(Activation('relu'))
+    model.add(Activation('sigmoid'))
     model.add(Convolution2D(64, 3, 3, subsample=(2, 2),
-                            init="glorot_uniform", border_mode='same'))
-    model.add(Activation('relu'))
+                            init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
+    model.add(Activation('sigmoid'))
     model.add(Convolution2D(32, 3, 3, subsample=(2, 2),
-                            init="glorot_uniform", border_mode='same'))
-    model.add(Activation('relu'))
+                            init=lambda shape, name: normal(shape, scale=0.01, name=name), border_mode='same'))
+    model.add(Activation('sigmoid'))
     model.add(Flatten())
-    model.add(Dense(512, init="glorot_uniform"))
-    model.add(Activation('relu'))
-    model.add(Dense(actionNum, init="glorot_uniform"))
+    model.add(Dense(512, init=lambda shape,
+                    name: normal(shape, scale=0.01, name=name)))
+    model.add(Activation('sigmoid'))
+    model.add(Dense(actionNum, init=lambda shape,
+                    name: normal(shape, scale=0.01, name=name)))
 
     adam = Adam(lr=1e-5)
     model.compile(loss='mse', optimizer=adam)
@@ -138,23 +140,28 @@ def train(model):
             mz.loactedStartPoint()
             # making decision
             # choose action randomly
-            random_action_t = np.random.randint(0, actionNum)
-            tmp_x, tmp_y = mz.calTempPostion(random_action_t)
-            random_action_q_value = mz.requestQValue(tmp_x, tmp_y)
-
-            # choose the max prediction reward
-            grayImages_t = queueImg.getChannels()
-            predict_action = model.predict(grayImages_t)
-            predicted_action_t = np.argmax(predict_action)
-            tmp_x, tmp_y = mz.calTempPostion(predicted_action_t)
-            predicted_action_q_value = mz.requestQValue(tmp_x, tmp_y)
-
-            print random_action_q_value, predicted_action_q_value
-
-            if random_action_q_value >= predicted_action_q_value:
+            if np.random.random() < randomEpsilon:
+                random_action_t = np.random.randint(0, actionNum)
+                tmp_x, tmp_y = mz.calTempPostion(random_action_t)
+                random_action_q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = random_action_t
+
             else:
+
+                # choose the max prediction reward
+                grayImages_t = queueImg.getChannels()
+                predict_action = model.predict(grayImages_t)
+                predicted_action_t = np.argmax(predict_action)
+                tmp_x, tmp_y = mz.calTempPostion(predicted_action_t)
+                predicted_action_q_value = mz.requestQValue(tmp_x, tmp_y)
                 action_t = predicted_action_t
+
+            # print random_action_q_value, predicted_action_q_value
+
+            # if random_action_q_value >= predicted_action_q_value:
+            #     action_t = random_action_t
+            # else:
+            #     action_t = predicted_action_t
 
             # change the postion depends on action index
             terminated, reward_t = mz.moveToNextState(action_t)
