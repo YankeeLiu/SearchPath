@@ -17,7 +17,7 @@ actionNum = 4
 initDistance = 1
 batchSz = 64
 gamma = 0.1
-observe = 320
+observe = 3200
 replayMemory = 20000
 Epsilo = 0.4
 resetLimitaion = 300000
@@ -33,10 +33,10 @@ renderSize = imgRow * renderScale
 
 def getModel():
     model = Sequential()
-    model.add(Convolution2D(128, 5, 5, subsample=(2, 2), init=lambda shape, name: normal(shape, scale=0.1, name=name),
+    model.add(Convolution2D(16, 5, 5, init=lambda shape, name: normal(shape, scale=0.1, name=name),
                             border_mode='same', input_shape=(imgChannel, imgRow, imgCol)))
     model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), init=lambda shape, name: normal(
+    model.add(Convolution2D(32, 3, 3, init=lambda shape, name: normal(
         shape, scale=0.01, name=name), border_mode='same'))
     model.add(Activation('relu'))
     model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init=lambda shape,
@@ -46,6 +46,11 @@ def getModel():
     model.add(Dense(512, init=lambda shape,
                     name: normal(shape, scale=0.1, name=name)))
     model.add(Activation('relu'))
+
+    model.add(Dense(64, init=lambda shape,
+                    name: normal(shape, scale=0.1, name=name)))
+    model.add(Activation('relu'))
+
     model.add(Dense(actionNum, init=lambda shape,
                     name: normal(shape, scale=0.1, name=name)))
 
